@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "env-contract-cli"
+version = "0.1.0"
+description = "Validate dotenv key contracts without displaying values"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+
+[project.scripts]
+env-contract = "env_contract:main"
+
+[tool.setuptools]
+py-modules = ["env_contract"]
