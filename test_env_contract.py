@@ -8,6 +8,11 @@ from env_contract import check, main, parse
 
 
 class EnvContractTests(unittest.TestCase):
+    def test_empty_contract_cannot_pass(self):
+        result = check('# template accidentally empty', 'TOKEN=present')
+        self.assertFalse(result['ok'])
+        self.assertEqual(result['findings'][0]['kind'], 'empty_contract')
+
     def test_matching_contract(self):
         self.assertTrue(check('A=\nB=example', 'export A=one\nB="two" # comment')['ok'])
 
