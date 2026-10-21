@@ -48,6 +48,8 @@ def check(example, actual, strict=False):
     expected, template_findings = parse(example)
     present, actual_findings = parse(actual)
     findings = [dict(item, source='example') for item in template_findings]
+    if not expected:
+        findings.append({'kind': 'empty_contract', 'source': 'example'})
     findings += [dict(item, source='env') for item in actual_findings]
     for key in sorted(expected):
         if key not in present:
