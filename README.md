@@ -9,7 +9,7 @@ python env_contract.py --strict --json
 
 Optional installation: `python -m pip install .`, then run `env-contract`.
 
-Every key listed in the example is required and must have a nonblank value in the actual file. Example values themselves are ignored. Duplicate keys and invalid lines in either file fail validation. Extra actual keys are allowed unless `--strict` is supplied. Exit codes: 0 success, 1 findings, 2 unreadable/non-UTF-8 input or invalid CLI arguments.
+Every key listed in the example is required and must have a nonblank value in the actual file. Example values themselves are ignored. An example with no keys fails with `empty_contract`, preventing an accidentally blank template from silently passing. Duplicate keys and invalid lines in either file fail validation. Extra actual keys are allowed unless `--strict` is supplied. Exit codes: 0 success, 1 findings, 2 unreadable/non-UTF-8 input or invalid CLI arguments.
 
 Example: an example file containing `DATABASE_URL=` and `PORT=` paired with an actual file containing only `PORT=3000` produces `env: missing DATABASE_URL` and exits 1.
 
