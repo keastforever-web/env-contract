@@ -8,6 +8,37 @@ from env_contract import check, main, parse
 
 
 class EnvContractTests(unittest.TestCase):
+    def test_cli_missing_file_has_safe_error(self):
+        with tempfile.TemporaryDirectory(dir=Path(__file__).parent) as directory:
+            output = io.StringIO()
+            with contextlib.redirect_stderr(output), self.assertRaises(SystemExit) as caught:
+                main(['--example', str(Path(directory) / 'private-template')])
+            self.assertEqual(caught.exception.code, 2)
+            self.assertNotIn(directory, output.getvalue())
+            self.assertNotIn('private-template', output.getvalue())
+
+    def test_cli_invalid_utf8_has_safe_error(self):
+        with tempfile.TemporaryDirectory(dir=Path(__file__).parent) as directory:
+            example = Path(directory) / 'example'
+            example.write_bytes(b'A=private-value\xff')
+            output = io.StringIO()
+            with contextlib.redirect_stderr(output), self.assertRaises(SystemExit) as caught:
+                main(['--example', str(example)])
+            self.assertEqual(caught.exception.code, 2)
+            self.assertNotIn('private-value', output.getvalue())
+            self.assertNotIn(directory, output.getvalue())
+
+    def test_cli_findings_exit_one(self):
+        with tempfile.TemporaryDirectory(dir=Path(__file__).parent) as directory:
+            example, actual = Path(directory) / 'example', Path(directory) / 'actual'
+            example.write_text('REQUIRED=', encoding='utf-8')
+            actual.write_text('# empty', encoding='utf-8')
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                code = main(['--example', str(example), '--env', str(actual), '--json'])
+            self.assertEqual(code, 1)
+            self.assertEqual(json.loads(output.getvalue())['findings'][0]['kind'], 'missing')
+
     def test_empty_contract_cannot_pass(self):
         result = check('# template accidentally empty', 'TOKEN=present')
         self.assertFalse(result['ok'])
