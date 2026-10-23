@@ -8,6 +8,14 @@ from env_contract import check, main, parse
 
 
 class EnvContractTests(unittest.TestCase):
+    def test_optional_key_can_be_missing_or_empty(self):
+        for actual in ['A=yes', 'A=yes\nB=']:
+            self.assertTrue(check('A=\nB=', actual, optional=['B'])['ok'])
+
+    def test_unknown_optional_key_rejected(self):
+        with self.assertRaises(ValueError):
+            check('A=', 'A=yes', optional=['TYPO'])
+
     def test_cli_missing_file_has_safe_error(self):
         with tempfile.TemporaryDirectory(dir=Path(__file__).parent) as directory:
             output = io.StringIO()
