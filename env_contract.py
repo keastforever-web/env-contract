@@ -44,14 +44,19 @@ def parse(text):
     return keys, findings
 
 
-def check(example, actual, strict=False):
+def check(example, actual, strict=False, optional=None):
     expected, template_findings = parse(example)
     present, actual_findings = parse(actual)
+    optional = set(optional or [])
+    if optional - expected.keys():
+        raise ValueError('optional keys must exist in the example')
     findings = [dict(item, source='example') for item in template_findings]
     if not expected:
         findings.append({'kind': 'empty_contract', 'source': 'example'})
     findings += [dict(item, source='env') for item in actual_findings]
     for key in sorted(expected):
+        if key in optional:
+            continue
         if key not in present:
             findings.append({'kind': 'missing', 'key': key, 'source': 'env'})
         elif not present[key]:
@@ -67,12 +72,16 @@ def main(argv=None):
     parser.add_argument('--env', default='.env')
     parser.add_argument('--strict', action='store_true', help='also reject keys absent from the example')
     parser.add_argument('--json', action='store_true')
+    parser.add_argument('--optional', action='append', default=[], metavar='KEY',
+                        help='allow an example key to be missing or empty; repeatable')
     args = parser.parse_args(argv)
     try:
-        result = check(Path(args.example).read_text(encoding='utf-8-sig'), Path(args.env).read_text(encoding='utf-8-sig'), args.strict)
+        result = check(Path(args.example).read_text(encoding='utf-8-sig'), Path(args.env).read_text(encoding='utf-8-sig'), args.strict, args.optional)
     except (OSError, UnicodeError):
         # Do not include exception text: it can include private paths or file bytes.
         parser.exit(2, 'env-contract: could not read input files as UTF-8\n')
+    except ValueError:
+        parser.exit(2, 'env-contract: optional keys must exist in the example\n')
     if args.json:
         print(json.dumps(result))
     else:
