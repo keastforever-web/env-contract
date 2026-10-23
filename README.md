@@ -15,6 +15,8 @@ Example: an example file containing `DATABASE_URL=` and `PORT=` paired with an a
 
 ## Supported format
 
+For explicitly optional configuration, repeat `--optional KEY` (for example, `--optional METRICS_URL`). The key must exist in the example, otherwise the CLI exits 2 to catch typos. Optional keys may be absent or empty; malformed definitions and duplicates still fail. Required-key behavior is unchanged. Python callers can pass `optional=['METRICS_URL']` to `check`.
+
 One `KEY=value` per line; ASCII identifier keys, optional `export`, UTF-8/BOM, blank lines, full-line comments, single/double quoted one-line values and trailing comments. Unquoted inline comments require whitespace before `#`. Quoted values must close on the same line. This intentionally checks a small dotenv subset; it does not source files, interpolate variables, evaluate shell commands, validate URLs/types, detect placeholders or inspect the process environment. Multiline values are unsupported and may produce multiple findings. Quoted backslashes are scanned only to find the closing quote, not decoded.
 
 Input files stay local and are never modified. Key names may themselves reveal configuration details; review before sharing reports. Do not commit real `.env` files. A successful check confirms presence, not validity of credentials.
