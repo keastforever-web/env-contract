@@ -8,6 +8,28 @@ from env_contract import check, main, parse
 
 
 class EnvContractTests(unittest.TestCase):
+    def test_optional_does_not_suppress_malformed_or_duplicate(self):
+        for actual in ['A=yes\nB="unterminated', 'A=yes\nB=\nB=']:
+            with self.subTest(actual=actual):
+                self.assertFalse(check('A=\nB=', actual, optional=['B'])['ok'])
+
+    def test_cli_repeated_optional_keys_and_typo(self):
+        with tempfile.TemporaryDirectory(dir=Path(__file__).parent) as directory:
+            example, actual = Path(directory) / 'example', Path(directory) / 'actual'
+            example.write_text('A=\nB=\nC=', encoding='utf-8')
+            actual.write_text('A=yes', encoding='utf-8')
+            arguments = ['--example', str(example), '--env', str(actual), '--json']
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                code = main(arguments + ['--optional', 'B', '--optional', 'C'])
+            self.assertEqual(code, 0)
+            self.assertTrue(json.loads(output.getvalue())['ok'])
+            error = io.StringIO()
+            with contextlib.redirect_stderr(error), self.assertRaises(SystemExit) as caught:
+                main(arguments + ['--optional', 'private-typo'])
+            self.assertEqual(caught.exception.code, 2)
+            self.assertNotIn('private-typo', error.getvalue())
+
     def test_optional_key_can_be_missing_or_empty(self):
         for actual in ['A=yes', 'A=yes\nB=']:
             self.assertTrue(check('A=\nB=', actual, optional=['B'])['ok'])
