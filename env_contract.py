@@ -4,7 +4,7 @@ import json
 import re
 from pathlib import Path
 
-ASSIGNMENT = re.compile(r'^(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$')
+ASSIGNMENT = re.compile(r'^(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=(.*)$')
 
 
 def parse(text):
@@ -18,6 +18,8 @@ def parse(text):
             findings.append({'kind': 'invalid_line', 'line': number})
             continue
         key, value = match.groups()
+        raw_value = value
+        value = value.strip()
         if key in keys:
             findings.append({'kind': 'duplicate', 'key': key, 'line': number})
         if value.startswith(('"', "'")):
@@ -39,7 +41,7 @@ def parse(text):
                 continue
             nonempty = bool(value[1:closing].strip())
         else:
-            nonempty = bool(re.split(r'\s+#', value, maxsplit=1)[0].strip()) and not value.startswith('#')
+            nonempty = bool(re.split(r'\s+#', raw_value, maxsplit=1)[0].strip())
         keys[key] = nonempty
     return keys, findings
 
