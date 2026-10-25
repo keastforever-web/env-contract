@@ -8,6 +8,11 @@ from env_contract import check, main, parse
 
 
 class EnvContractTests(unittest.TestCase):
+    def test_hash_without_preceding_space_is_literal(self):
+        self.assertTrue(check('A=', 'A=#literal')['ok'])
+        self.assertFalse(check('A=', 'A= # comment')['ok'])
+        self.assertTrue(check('A=', 'A=value#suffix')['ok'])
+
     def test_optional_does_not_suppress_malformed_or_duplicate(self):
         for actual in ['A=yes\nB="unterminated', 'A=yes\nB=\nB=']:
             with self.subTest(actual=actual):
