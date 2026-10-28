@@ -8,6 +8,12 @@ from env_contract import check, main, parse
 
 
 class EnvContractTests(unittest.TestCase):
+    def test_nul_in_value_is_rejected_without_disclosure(self):
+        result = check('A=', 'A=private\x00value')
+        self.assertFalse(result['ok'])
+        self.assertIn('invalid_line', [item['kind'] for item in result['findings']])
+        self.assertNotIn('private', json.dumps(result))
+
     def test_hash_without_preceding_space_is_literal(self):
         self.assertTrue(check('A=', 'A=#literal')['ok'])
         self.assertFalse(check('A=', 'A= # comment')['ok'])
