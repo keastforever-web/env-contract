@@ -13,6 +13,9 @@ def parse(text):
         line = raw.strip()
         if not line or line.startswith('#'):
             continue
+        if '\x00' in line:
+            findings.append({'kind': 'invalid_line', 'line': number})
+            continue
         match = ASSIGNMENT.fullmatch(line)
         if not match:
             findings.append({'kind': 'invalid_line', 'line': number})
