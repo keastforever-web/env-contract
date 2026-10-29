@@ -8,6 +8,17 @@ from env_contract import check, main, parse
 
 
 class EnvContractTests(unittest.TestCase):
+    def test_nul_in_template_is_rejected(self):
+        result = check('A=private\x00value', 'A=yes')
+        self.assertFalse(result['ok'])
+        self.assertTrue(any(item['kind'] == 'invalid_line' and item['source'] == 'example' for item in result['findings']))
+        self.assertNotIn('private', json.dumps(result))
+
+    def test_nul_in_optional_value_cannot_be_ignored(self):
+        result = check('A=\nB=', 'A=yes\nB=private\x00value', optional=['B'])
+        self.assertFalse(result['ok'])
+        self.assertNotIn('private', json.dumps(result))
+
     def test_nul_in_value_is_rejected_without_disclosure(self):
         result = check('A=', 'A=private\x00value')
         self.assertFalse(result['ok'])
