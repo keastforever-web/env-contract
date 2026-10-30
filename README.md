@@ -21,8 +21,6 @@ One `KEY=value` per line; ASCII identifier keys, optional `export`, UTF-8/BOM, b
 
 Input files stay local and are never modified. Key names may themselves reveal configuration details; review before sharing reports. Do not commit real `.env` files. A successful check confirms presence, not validity of credentials.
 
-## Development
-
 ## CI integration
 
 Run the check after your CI job has provisioned its temporary environment file:
