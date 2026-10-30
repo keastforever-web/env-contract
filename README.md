@@ -23,6 +23,23 @@ Input files stay local and are never modified. Key names may themselves reveal c
 
 ## Development
 
+## CI integration
+
+Run the check after your CI job has provisioned its temporary environment file:
+
+```yaml
+- name: Validate environment contract
+  run: python env_contract.py --example .env.example --env .env.ci --strict --json
+```
+
+Keep `.env.ci` out of version control if it contains credentials. This command does not load secrets into the process or verify that credentials work. Findings exit 1 and stop a normal CI step; unreadable files or misspelled optional keys exit 2. An optional key must still be declared in `.env.example`:
+
+```sh
+python env_contract.py --example .env.example --env .env.ci --optional METRICS_URL
+```
+
+If validation reports `empty_contract`, restore the intended example keys rather than bypassing the failure. If it reports `invalid_line`, check the reported line locally; the report deliberately omits its contents. Multiline secrets must be supplied using another supported configuration mechanism because this checker accepts one-line assignments only.
+
 ```sh
 python -m unittest -v
 ```
