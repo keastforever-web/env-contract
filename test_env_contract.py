@@ -2,12 +2,32 @@ import contextlib
 import io
 import json
 import tempfile
+import subprocess
+import sys
 import unittest
 from pathlib import Path
 from env_contract import check, main, parse
 
 
 class EnvContractTests(unittest.TestCase):
+    def test_executable_exit_codes_with_spaced_paths(self):
+        with tempfile.TemporaryDirectory(prefix='env contract ', dir=Path(__file__).parent) as directory:
+            example, actual = Path(directory) / 'example file', Path(directory) / 'actual file'
+            example.write_text('A=', encoding='utf-8')
+            actual.write_text('A=private-value', encoding='utf-8')
+            command = [sys.executable, str(Path(__file__).with_name('env_contract.py')),
+                       '--example', str(example), '--env', str(actual), '--json']
+            success = subprocess.run(command, capture_output=True, text=True)
+            self.assertEqual(success.returncode, 0)
+            self.assertTrue(json.loads(success.stdout)['ok'])
+            self.assertNotIn('private-value', success.stdout + success.stderr)
+            actual.write_text('# no required value', encoding='utf-8')
+            failure = subprocess.run(command, capture_output=True, text=True)
+            self.assertEqual(failure.returncode, 1)
+            self.assertFalse(json.loads(failure.stdout)['ok'])
+            invalid = subprocess.run(command + ['--optional', 'UNKNOWN'], capture_output=True, text=True)
+            self.assertEqual(invalid.returncode, 2)
+
     def test_nul_in_template_is_rejected(self):
         result = check('A=private\x00value', 'A=yes')
         self.assertFalse(result['ok'])
