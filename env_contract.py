@@ -9,6 +9,7 @@ ASSIGNMENT = re.compile(r'^(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=(.*)$')
 
 def parse(text):
     keys, findings = {}, []
+    first_lines = {}
     for number, raw in enumerate(text.lstrip('\ufeff').splitlines(), 1):
         line = raw.strip()
         if not line or line.startswith('#'):
@@ -24,7 +25,8 @@ def parse(text):
         raw_value = value
         value = value.strip()
         if key in keys:
-            findings.append({'kind': 'duplicate', 'key': key, 'line': number})
+            findings.append({'kind': 'duplicate', 'key': key, 'line': number, 'first_line': first_lines[key]})
+        first_lines.setdefault(key, number)
         if value.startswith(('"', "'")):
             quote = value[0]
             # Deliberately support one-line values only; never evaluate expansions.
