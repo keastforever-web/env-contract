@@ -10,6 +10,11 @@ from env_contract import check, main, parse
 
 
 class EnvContractTests(unittest.TestCase):
+    def test_duplicate_points_to_original_definition(self):
+        result = check('A=', '# comment\nA=first\nA=second\nA=third')
+        duplicates = [item for item in result['findings'] if item['kind'] == 'duplicate']
+        self.assertEqual([(item['line'], item['first_line']) for item in duplicates], [(3, 2), (4, 2)])
+
     def test_executable_exit_codes_with_spaced_paths(self):
         with tempfile.TemporaryDirectory(prefix='env contract ', dir=Path(__file__).parent) as directory:
             example, actual = Path(directory) / 'example file', Path(directory) / 'actual file'
