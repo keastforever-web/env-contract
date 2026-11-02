@@ -94,7 +94,7 @@ def main(argv=None):
     else:
         print('env-contract: ' + ('OK' if result['ok'] else 'CHECK FAILED'))
         for finding in result['findings']:
-            print(f"{finding['source']}: {finding['kind']}" + (f" {finding['key']}" if 'key' in finding else '') + (f" (line {finding['line']})" if 'line' in finding else ''))
+            print(f"{finding['source']}: {finding['kind']}" + (f" {finding['key']}" if 'key' in finding else '') + (f" (line {finding['line']})" if 'line' in finding else '') + (f" (first defined on line {finding['first_line']})" if 'first_line' in finding else ''))
     return 0 if result['ok'] else 1
 
 
