@@ -10,6 +10,19 @@ from env_contract import check, main, parse
 
 
 class EnvContractTests(unittest.TestCase):
+    def test_text_report_shows_both_duplicate_locations(self):
+        with tempfile.TemporaryDirectory(dir=Path(__file__).parent) as directory:
+            example, actual = Path(directory) / 'example', Path(directory) / 'actual'
+            example.write_text('A=', encoding='utf-8')
+            actual.write_text('A=private-one\nA=private-two', encoding='utf-8')
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                code = main(['--example', str(example), '--env', str(actual)])
+            self.assertEqual(code, 1)
+            self.assertIn('line 2', output.getvalue())
+            self.assertIn('first defined on line 1', output.getvalue())
+            self.assertNotIn('private-', output.getvalue())
+
     def test_duplicate_points_to_original_definition(self):
         result = check('A=', '# comment\nA=first\nA=second\nA=third')
         duplicates = [item for item in result['findings'] if item['kind'] == 'duplicate']
