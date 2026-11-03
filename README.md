@@ -21,6 +21,18 @@ One `KEY=value` per line; ASCII identifier keys, optional `export`, UTF-8/BOM, b
 
 Input files stay local and are never modified. Key names may themselves reveal configuration details; review before sharing reports. Do not commit real `.env` files. A successful check confirms presence, not validity of credentials.
 
+## Report format
+
+JSON output contains `ok`, `expected_keys`, `actual_keys`, and a `findings` array. Each finding has a `kind` and a `source` (`example` or `env`); key-related findings include `key`. Parser findings include the one-based `line`. Duplicate findings also include `first_line`, the original definition, so editors and CI consumers can locate both positions without reading values.
+
+For example, `A=one` followed by `A=two` produces a finding shaped like:
+
+```json
+{"kind":"duplicate","key":"A","line":2,"first_line":1,"source":"env"}
+```
+
+Current kinds are `missing`, `empty`, `extra`, `duplicate`, `invalid_line`, `invalid_value`, and `empty_contract`. Treat finding fields as additive: consumers should ignore fields they do not use. Default text output shows both positions for duplicates. Values and raw invalid lines are omitted in both formats.
+
 ## CI integration
 
 Run the check after your CI job has provisioned its temporary environment file:
